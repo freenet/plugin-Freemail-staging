@@ -72,8 +72,8 @@
 		       destdir="${build}"
 		       debug="on"
 		       optimize="on"
-		       source="1.6"
-		       target="1.6"
+		       source="1.7"
+		       target="1.7"
 		       encoding="UTF-8"
 		       includeantruntime="false">
 			<include name="${version.src}"/>
@@ -91,8 +91,8 @@
 		       destdir="${build}"
 		       debug="on"
 		       optimize="on"
-		       source="1.6"
-		       target="1.6"
+		       source="1.7"
+		       target="1.7"
 		       encoding="UTF-8"
 		       includeantruntime="false">
 			<classpath>
@@ -120,8 +120,8 @@
 		       destdir="${tools.dst}"
 		       debug="on"
 		       optimize="on"
-		       source="1.6"
-		       target="1.6"
+		       source="1.7"
+		       target="1.7"
 		       encoding="UTF-8"
 		       includeantruntime="false">
 			<classpath>
@@ -137,8 +137,8 @@
 		       destdir="${build-test}"
 		       debug="on"
 		       optimize="on"
-		       source="1.6"
-		       target="1.6"
+		       source="1.7"
+		       target="1.7"
 		       encoding="UTF-8"
 		       includeantruntime="false">
 			<classpath>
@@ -186,6 +186,7 @@
 	<target name="dist" depends="compile" description="Generates the Freemail jar">
 		<mkdir dir="${dist}"/>
 		<jar jarfile="${dist}/Freemail.jar" basedir="${build}">
+			<fileset dir="${src}/resources" />
 			<manifest>
 				<attribute name="Main-Class" value="org.freenetproject.freemail.FreemailCli"/>
 				<attribute name="Plugin-Main-Class" value="org.freenetproject.freemail.FreemailPlugin"/>

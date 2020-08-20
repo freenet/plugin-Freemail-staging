@@ -20,29 +20,29 @@
 
 package org.freenetproject.freemail.ui.web;
 
-import java.io.IOException;
-import java.net.URI;
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
-import org.freenetproject.freemail.MailMessage;
-import org.freenetproject.freemail.l10n.FreemailL10n;
-import org.freenetproject.freemail.utils.Logger;
-import org.freenetproject.freemail.utils.Timer;
-
-import freenet.clients.http.LinkEnabledCallback;
-import freenet.clients.http.PageMaker;
-import freenet.clients.http.PageNode;
-import freenet.clients.http.Toadlet;
-import freenet.clients.http.ToadletContext;
-import freenet.clients.http.ToadletContextClosedException;
+import freenet.clients.http.*;
 import freenet.pluginmanager.PluginRespirator;
 import freenet.support.HTMLNode;
 import freenet.support.MultiValueTable;
 import freenet.support.api.Bucket;
 import freenet.support.api.HTTPRequest;
+import org.freenetproject.freemail.MailMessage;
+import org.freenetproject.freemail.l10n.FreemailL10n;
+import org.freenetproject.freemail.utils.Logger;
+import org.freenetproject.freemail.utils.Timer;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 	private final PageMaker pageMaker;
@@ -175,6 +175,40 @@ public abstract class WebPage extends Toadlet implements LinkEnabledCallback {
 		FreemailL10n.addL10nSubstitution(text, "Freemail.Global.WoTNotLoaded",
 				new String[] {"link"},
 				new HTMLNode[] {HTMLNode.link("/plugins")});
+	}
+
+	void addChild(HTMLNode parent, String templateName, Map<String, String> model) throws IOException {
+		try (InputStream stream =
+						getClass().getResourceAsStream("/templates/" + templateName + ".html")) {
+			ByteArrayOutputStream content = new ByteArrayOutputStream();
+
+			int len;
+			byte[] contentBytes = new byte[1024];
+			while ((len = stream.read(contentBytes)) != -1)
+				content.write(contentBytes, 0, len);
+
+			String template = content.toString(StandardCharsets.UTF_8.name());
+
+			for (Map.Entry<String, String> entry : model.entrySet())
+				template = template.replaceAll("\\$\\{" + entry.getKey() + "}", entry.getValue());
+
+			String key;
+			while ((key = getL10nKey(template)) != null)
+				template = template.replaceAll("#\\{" + key + "}", FreemailL10n.getString(key));
+
+			parent.addChild("%", template);
+		}
+	}
+
+	private String getL10nKey(String template) {
+		Pattern pattern = Pattern.compile("#\\{.*}");
+		Matcher matcher = pattern.matcher(template);
+		if (matcher.find()) {
+			String key = matcher.group();
+			return key.substring(2, key.length() - 1);
+		}
+
+		return null;
 	}
 
 	protected abstract class HTTPResponse {
